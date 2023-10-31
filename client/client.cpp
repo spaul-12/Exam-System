@@ -1,4 +1,5 @@
 // C program for the Client Side
+#include<bits/stdc++.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,12 +13,14 @@
 #include <pthread.h>
 #include <semaphore.h>
 #define PORT 8080
+using namespace std;
 // Function to send data to
 // server socket.
 void* clienthread(void* args)
 {
 
-	int client_request = *((int*)args);
+	char buffer[1024]={0};        // to receive string from the server
+	int client_request = *((int*)args); 
 	int network_socket;
 
 	// Create a stream socket
@@ -48,6 +51,12 @@ void* clienthread(void* args)
 		sizeof(client_request), 0);
 
 	printf("data send successfully\n");
+
+	// Receive data from the server
+  	int valread = read(network_socket, buffer, 1024 - 1); // subtract 1 for the null terminator at the end
+	printf("message received :");
+    printf("%s\n", buffer);
+
 	// Close the connection
 	close(network_socket);
 	pthread_exit(NULL);

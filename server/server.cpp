@@ -1,4 +1,4 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 // inet_addr
 #include <arpa/inet.h>
 
@@ -8,9 +8,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #define PORT 8080
-
-
-
+using namespace std;
 // Semaphore variables
 sem_t x, y;
 pthread_t tid;
@@ -19,41 +17,21 @@ pthread_t readerthreads[100];
 int readercount = 0;
 
 // Reader Function
-void* reader(void* param)
+void *Student(void *param)
 {
-	// Lock the semaphore
-	sem_wait(&x);
-	readercount++;
+	int socket_fd = *((int*)param);    // server socket
+	string str = "Welcome to exam system";
+	send(socket_fd,str.data(),str.size(),0);
 
-	if (readercount == 1)
-		sem_wait(&y);
-
-	// Unlock the semaphore
-	sem_post(&x);
-
-	printf("\n%d reader is inside",
-		readercount);
+	printf("string sent\n");
 
 	sleep(5);
-
-	// Lock the semaphore
-	sem_wait(&x);
-	readercount--;
-
-	if (readercount == 0) {
-		sem_post(&y);
-	}
-
-	// Lock the semaphore
-	sem_post(&x);
-
-	printf("\n%d Reader is leaving",
-		readercount + 1);
 	pthread_exit(NULL);
+
 }
 
 // Writer Function
-void* writer(void* param)
+void *Instructor(void *param)
 {
 	printf("\nWriter is trying to enter");
 
@@ -82,7 +60,7 @@ int main()
 	sem_init(&y, 0, 1);
 
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if(serverSocket<0)
+	if (serverSocket < 0)
 	{
 		printf("connection failed\n");
 		exit(0);
@@ -93,12 +71,11 @@ int main()
 
 	// Bind the socket to the
 	// address and port number.
-	if(bind(serverSocket,
-		(struct sockaddr*)&serverAddr,
-		sizeof(serverAddr))<0){
-			printf("bind failed\n");
-			exit(0);
-		}
+	if (bind(serverSocket,(struct sockaddr *)&serverAddr,sizeof(serverAddr)) < 0)
+	{
+		printf("bind failed\n");
+		exit(0);
+	}
 
 	// Listen on the socket,
 	// with 50 max connection
@@ -113,44 +90,39 @@ int main()
 
 	int i = 0;
 
-	while (1) {
+	while (1)
+	{
 		addr_size = sizeof(serverStorage);
 
 		// Extract the first
 		// connection in the queue
-		newSocket = accept(serverSocket,
-						(struct sockaddr*)&serverStorage,
-						&addr_size);
-		if(newSocket<0)
+		newSocket = accept(serverSocket,(struct sockaddr *)&serverStorage,&addr_size);
+		if (newSocket < 0)
 		{
 			printf("accept failed\n");
 			exit(0);
 		}
 		int choice = 0;
 		recv(newSocket,
-			&choice, sizeof(choice), 0);
+			 &choice, sizeof(choice), 0);
 
-		/*if (choice == 1) {
+		if (choice == 1)
+		{
 			// Creater readers thread
-			if (pthread_create(&readerthreads[i++], NULL,
-							reader, &newSocket)
-				!= 0)
+			if (pthread_create(&readerthreads[i++], NULL, Student, &newSocket) != 0)
 
 				// Error in creating thread
-				printf("Failed to create thread\n");
+				printf("Failed to create Student thread\n");
 		}
-		else if (choice == 2) {
+		else if (choice == 2)
+		{
 			// Create writers thread
-			if (pthread_create(&writerthreads[i++], NULL,
-							writer, &newSocket)
-				!= 0)
+			if (pthread_create(&writerthreads[i++], NULL, Instructor, &newSocket) != 0)
 
 				// Error in creating thread
-				printf("Failed to create thread\n");
+				printf("Failed to create Instructor thread\n");
 		}
-		*/
-		printf("data received\n");
-		printf("val received is %d",choice);
+
 
 		/*if (i >= 50) {
 			// Update i
@@ -171,7 +143,6 @@ int main()
 			i = 0;
 		}*/
 
-		printf("\n moving to receive the next connection \n");
 	}
 
 	return 0;
