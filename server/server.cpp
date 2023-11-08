@@ -1,5 +1,4 @@
-#include <bits/stdc++.h>
-// inet_addr
+#include "../Templates/template.h"
 #include <arpa/inet.h>
 
 // For threading, link with lpthread
@@ -11,46 +10,37 @@
 using namespace std;
 // Semaphore variables
 sem_t x, y;
-pthread_t tid;
-pthread_t writerthreads[100];
-pthread_t readerthreads[100];
-int readercount = 0;
 
 // Reader Function
-void *Student(void *param)
+
+void Student(int clientSocket)
 {
-	int socket_fd = *((int*)param);    // server socket
-	string str = "Welcome to exam system";
-	send(socket_fd,str.data(),str.size(),0);
-
-	printf("string sent\n");
-
-	sleep(5);
-	pthread_exit(NULL);
+	
 
 }
 
 // Writer Function
-void *Instructor(void *param)
+void Instructor(void *param)
 {
-	printf("\nWriter is trying to enter");
-
-	// Lock the semaphore
-	sem_wait(&y);
-
-	printf("\nWriter has entered");
-
-	// Unlock the semaphore
-	sem_post(&y);
-
-	printf("\nWriter is leaving");
+	
 	pthread_exit(NULL);
 }
+void *clientConnection(void *param)
+{
+	int clientSocket = *((int *)param);
+	int choice;
+	recv(clientSocket,&choice,sizeof(choice),0);
+	if(choice==1)
+	{
+		server_side_registration(clientSocket);
+	}
 
+}
 // Driver Code
 int main()
 {
 	// Initialize variables
+    pthread_t thread[10000];
 	int serverSocket, newSocket;
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
@@ -102,46 +92,11 @@ int main()
 			printf("accept failed\n");
 			exit(0);
 		}
-		int choice = 0;
-		recv(newSocket,
-			 &choice, sizeof(choice), 0);
-
-		if (choice == 1)
+		
+		if(pthread_create(&thread[i++],NULL,clientConnection,&newSocket)!=0)
 		{
-			// Creater readers thread
-			if (pthread_create(&readerthreads[i++], NULL, Student, &newSocket) != 0)
-
-				// Error in creating thread
-				printf("Failed to create Student thread\n");
+			printf("Failed to create client thread\n");
 		}
-		else if (choice == 2)
-		{
-			// Create writers thread
-			if (pthread_create(&writerthreads[i++], NULL, Instructor, &newSocket) != 0)
-
-				// Error in creating thread
-				printf("Failed to create Instructor thread\n");
-		}
-
-
-		/*if (i >= 50) {
-			// Update i
-			i = 0;
-
-			while (i < 50) {
-				// Suspend execution of
-				// the calling thread
-				// until the target
-				// thread terminates
-				pthread_join(writerthreads[i++],
-							NULL);
-				pthread_join(readerthreads[i++],
-							NULL);
-			}
-
-			// Update i
-			i = 0;
-		}*/
 
 	}
 
