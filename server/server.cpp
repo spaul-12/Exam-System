@@ -1,63 +1,96 @@
-#include <bits/stdc++.h>
-// inet_addr
+#include "../Templates/template.h"
 #include <arpa/inet.h>
 
 // For threading, link with lpthread
 #include <pthread.h>
 #include <semaphore.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #define PORT 8080
 using namespace std;
-// Semaphore variables
-sem_t x, y;
-pthread_t tid;
-pthread_t writerthreads[100];
-pthread_t readerthreads[100];
-int readercount = 0;
 
-// Reader Function
-void *Student(void *param)
+//semaphore variables
+sem_t *student_regFileSemaphore;
+sem_t *teacher_regFileSemaphore;
+sem_t *readFileSemaphore;
+
+
+void *clientConnection(void *param)
 {
-	int socket_fd = *((int*)param);    // server socket
-	string str = "Welcome to exam system";
-	send(socket_fd,str.data(),str.size(),0);
-
-	printf("string sent\n");
-
-	sleep(5);
-	pthread_exit(NULL);
-
+	cout<<"Connected to server\n";
+	int success_code = SUCCESSFUL_CODE;
+	int newSocket = *((int *)param);
+	bool endflag = false;
+	pthread_t ptid = pthread_self();
+	int choice;
+	while(1)
+	{
+		// Receive a request code from the client
+        recv(newSocket, &choice, sizeof(choice), 0);
+        //cout << choice << endl;
+        switch (choice)
+        {
+        	case END_CONNECTION_CODE:
+        	{
+        	    endflag = true;
+        	    break;
+        	}
+        	
+        	case REGISTRATION_CODE:
+        	{
+        	    // Handle user registration request
+				cout<<"Registration started..\n";
+				char usertype;
+        	    recv(newSocket,&usertype,sizeof(usertype),0);
+				cout<<usertype<<endl;
+				if(usertype=='S')
+				{
+					sem_wait(student_regFileSemaphore);
+					server_side_student_registration(newSocket);
+					sem_post(student_regFileSemaphore);
+				}
+				else
+				{
+					sem_wait(teacher_regFileSemaphore);
+					server_side_teacher_registration(newSocket);
+					sem_post(teacher_regFileSemaphore);
+				}
+				send(newSocket,&success_code,sizeof(success_code),0);
+        	    break;
+        	}
+        	case LOGIN_CODE:
+        	{
+        	    // Handle user login request
+				sem_wait(readFileSemaphore);
+				send(newSocket,&success_code,sizeof(success_code),0);
+				sem_post(readFileSemaphore);
+        	    break;
+        	}
+        }
+        if (endflag)
+            break;
+	
+    }
+	pthread_exit(&ptid);	
 }
 
-// Writer Function
-void *Instructor(void *param)
-{
-	printf("\nWriter is trying to enter");
-
-	// Lock the semaphore
-	sem_wait(&y);
-
-	printf("\nWriter has entered");
-
-	// Unlock the semaphore
-	sem_post(&y);
-
-	printf("\nWriter is leaving");
-	pthread_exit(NULL);
-}
 
 // Driver Code
 int main()
 {
 	// Initialize variables
+    pthread_t thread[10000];
 	int serverSocket, newSocket;
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
 
 	socklen_t addr_size;
-	sem_init(&x, 0, 1);
-	sem_init(&y, 0, 1);
+	
+    //  binary semaphores with an initial value 1
+    student_regFileSemaphore = sem_open (SEMAPHORE_NAME1, O_CREAT, 0660, 1);
+	teacher_regFileSemaphore = sem_open(SEMAPHORE_NAME2,O_CREAT,0660,1);
+	readFileSemaphore = sem_open(SEMAPHORE_NAME3, O_CREAT, 0660,1);
 
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket < 0)
@@ -85,8 +118,6 @@ int main()
 	else
 		printf("Error\n");
 
-	// Array for thread
-	pthread_t tid[60];
 
 	int i = 0;
 
@@ -102,46 +133,11 @@ int main()
 			printf("accept failed\n");
 			exit(0);
 		}
-		int choice = 0;
-		recv(newSocket,
-			 &choice, sizeof(choice), 0);
-
-		if (choice == 1)
+		
+		if(pthread_create(&thread[i++],NULL,clientConnection,&newSocket)!=0)
 		{
-			// Creater readers thread
-			if (pthread_create(&readerthreads[i++], NULL, Student, &newSocket) != 0)
-
-				// Error in creating thread
-				printf("Failed to create Student thread\n");
+			printf("Failed to create client thread\n");
 		}
-		else if (choice == 2)
-		{
-			// Create writers thread
-			if (pthread_create(&writerthreads[i++], NULL, Instructor, &newSocket) != 0)
-
-				// Error in creating thread
-				printf("Failed to create Instructor thread\n");
-		}
-
-
-		/*if (i >= 50) {
-			// Update i
-			i = 0;
-
-			while (i < 50) {
-				// Suspend execution of
-				// the calling thread
-				// until the target
-				// thread terminates
-				pthread_join(writerthreads[i++],
-							NULL);
-				pthread_join(readerthreads[i++],
-							NULL);
-			}
-
-			// Update i
-			i = 0;
-		}*/
 
 	}
 

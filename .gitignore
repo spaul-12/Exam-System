@@ -1,1 +1,4 @@
-/*.out
+/**/*.out
+.vscode/*
+*.txt
+/build
