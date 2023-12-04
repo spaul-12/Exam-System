@@ -13,7 +13,7 @@ using namespace std;
 //semaphore variables
 sem_t *student_regFileSemaphore;
 sem_t *teacher_regFileSemaphore;
-
+sem_t *readFileSemaphore;
 
 
 void *clientConnection(void *param)
@@ -29,7 +29,6 @@ void *clientConnection(void *param)
 		// Receive a request code from the client
         recv(newSocket, &choice, sizeof(choice), 0);
         //cout << choice << endl;
-		cout<<choice<<endl;
         switch (choice)
         {
         	case END_CONNECTION_CODE:
@@ -47,15 +46,15 @@ void *clientConnection(void *param)
 				cout<<usertype<<endl;
 				if(usertype=='S')
 				{
-					sem_post(student_regFileSemaphore);
-					server_side_student_registration(newSocket);
 					sem_wait(student_regFileSemaphore);
+					server_side_student_registration(newSocket);
+					sem_post(student_regFileSemaphore);
 				}
 				else
 				{
-					sem_post(teacher_regFileSemaphore);
-					server_side_teacher_registration(newSocket);
 					sem_wait(teacher_regFileSemaphore);
+					server_side_teacher_registration(newSocket);
+					sem_post(teacher_regFileSemaphore);
 				}
 				send(newSocket,&success_code,sizeof(success_code),0);
         	    break;
@@ -63,21 +62,9 @@ void *clientConnection(void *param)
         	case LOGIN_CODE:
         	{
         	    // Handle user login request
-        	    string usertype;
-        	    recv(newSocket,&usertype,sizeof(usertype),0);
-				if(usertype=="S")
-				{
-					sem_post(student_regFileSemaphore);
-					//server_side_student_login(newSocket);
-					sem_wait(student_regFileSemaphore);
-				}
-				else
-				{
-					sem_post(teacher_regFileSemaphore);
-					//server_side_teacher_login(newSocket);
-					sem_wait(teacher_regFileSemaphore);
-				}
+				sem_wait(readFileSemaphore);
 				send(newSocket,&success_code,sizeof(success_code),0);
+				sem_post(readFileSemaphore);
         	    break;
         	}
         }
@@ -103,6 +90,7 @@ int main()
     //  binary semaphores with an initial value 1
     student_regFileSemaphore = sem_open (SEMAPHORE_NAME1, O_CREAT, 0660, 1);
 	teacher_regFileSemaphore = sem_open(SEMAPHORE_NAME2,O_CREAT,0660,1);
+	readFileSemaphore = sem_open(SEMAPHORE_NAME3, O_CREAT, 0660,1);
 
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket < 0)

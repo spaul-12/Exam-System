@@ -11,6 +11,18 @@
 #define PORT 8080
 using namespace std;
 
+User::User(string username,string password,string usertype)
+{
+    this->username = username;
+    this->password = password;
+    this->usertype = usertype;
+}
+
+User::User(string password)
+{
+    this->password = password;
+}
+
 void User::user_specific_functions(int client_socket)
 {
     cout<<"Overrideable function \n";
@@ -28,12 +40,21 @@ Student::Student(string username, string password, string usertype, string rolln
     this->department = department;
 }
 
+Student::Student(string id, string password): User(password)
+{
+    this->rollno = id;
+}
+
 Teacher::Teacher(string username, string password, string usertype, string id, string department): User(username, password, usertype)
 {
     this->teacherid = id;
     this->department = department;
 }
 
+Teacher::Teacher(string id, string password): User(password)
+{
+    this->teacherid = id;
+}
 
 Client::Client()
 {
@@ -61,6 +82,9 @@ Client::Client()
     // Send data to the socket
     int choice,code;
     system("clear");
+    char userType;
+    cout << "Are you a student or a teacher?(S for Student, T for Teacher) \n";
+    cin >> userType;
     cout << "Enter your choice:\n1) Register\n2) Login\n3) Exit\n";
     cin >> choice;
     switch (choice)
@@ -69,9 +93,6 @@ Client::Client()
     {
         code = REGISTRATION_CODE;
         send(this->client_socket, &code, sizeof(code), 0);
-        char userType;
-        cout << "Are you a student or a teacher?(S for Student, T for Teacher) ";
-        cin >> userType;
         registeruser(userType);
         break;
     }
@@ -79,10 +100,7 @@ Client::Client()
     {
         code = LOGIN_CODE;
         send(this->client_socket, &code, sizeof(code), 0);
-        char userType;
-        cout << "Are you a student or a teacher?(S for Student, T for Teacher) ";
-        cin >> userType;
-        //login(userType);
+        login(userType);
         break;
     }
     case 3:
@@ -179,6 +197,48 @@ void Client::registeruser(char &usertype)
         return ;
     }
 }  
+
+void Client::login(char &usertype)
+{
+    send(client_socket,&usertype,sizeof(usertype),0);  // to call specific login func
+    int code;
+
+    loginInfo *userInfo = new loginInfo;
+
+    while(1)
+    {
+        cout<<login_menu;
+        cin>>userInfo->id;
+        cin>>userInfo->password;
+        
+        send(client_socket,userInfo,sizeof(* userInfo),0);
+
+        recv(client_socket,&code,sizeof(code),0);
+
+        if(code == SUCCESSFUL_CODE)
+        {
+            cout << "Welcome to Exam center!!\n";
+            if(usertype=='S')
+            {
+                this->client = new Student(userInfo->id, userInfo->password);
+                Student *student = dynamic_cast<Student*>(this->client);
+                student->user_specific_functions(client_socket);
+            }
+            else
+            {
+                this->client = new Teacher(userInfo->id, userInfo->password);
+                Teacher *teacher = dynamic_cast<Teacher *>(this->client);
+                teacher->user_specific_functions(client_socket);
+            }
+        }
+        else
+        {
+            cout<<"Invalid credentials..";
+        }
+
+    }
+
+}
 
 void Student::user_specific_functions(int client_socket)
 {
