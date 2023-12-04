@@ -1,5 +1,5 @@
 // C program for the Client Side
-#include <bits/stdc++.h>
+#include "../Templates/template.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,9 +19,8 @@ using namespace std;
 void *clienthread(void *args)
 {
 
-	
+	Client new_client;        // calls client class constructor
 	pthread_exit(NULL);
-
 	return 0;
 }
 

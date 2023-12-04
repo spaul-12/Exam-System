@@ -4,38 +4,91 @@
 // For threading, link with lpthread
 #include <pthread.h>
 #include <semaphore.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #define PORT 8080
 using namespace std;
-// Semaphore variables
-sem_t x, y;
 
-// Reader Function
+//semaphore variables
+sem_t *student_regFileSemaphore;
+sem_t *teacher_regFileSemaphore;
 
-void Student(int clientSocket)
-{
-	
 
-}
 
-// Writer Function
-void Instructor(void *param)
-{
-	
-	pthread_exit(NULL);
-}
 void *clientConnection(void *param)
 {
-	int clientSocket = *((int *)param);
+	cout<<"Connected to server\n";
+	int success_code = SUCCESSFUL_CODE;
+	int newSocket = *((int *)param);
+	bool endflag = false;
+	pthread_t ptid = pthread_self();
 	int choice;
-	recv(clientSocket,&choice,sizeof(choice),0);
-	if(choice==1)
+	while(1)
 	{
-		server_side_registration(clientSocket);
-	}
-
+		// Receive a request code from the client
+        recv(newSocket, &choice, sizeof(choice), 0);
+        //cout << choice << endl;
+		cout<<choice<<endl;
+        switch (choice)
+        {
+        	case END_CONNECTION_CODE:
+        	{
+        	    endflag = true;
+        	    break;
+        	}
+        	
+        	case REGISTRATION_CODE:
+        	{
+        	    // Handle user registration request
+				cout<<"Registration started..\n";
+				char usertype;
+        	    recv(newSocket,&usertype,sizeof(usertype),0);
+				cout<<usertype<<endl;
+				if(usertype=='S')
+				{
+					sem_post(student_regFileSemaphore);
+					server_side_student_registration(newSocket);
+					sem_wait(student_regFileSemaphore);
+				}
+				else
+				{
+					sem_post(teacher_regFileSemaphore);
+					server_side_teacher_registration(newSocket);
+					sem_wait(teacher_regFileSemaphore);
+				}
+				send(newSocket,&success_code,sizeof(success_code),0);
+        	    break;
+        	}
+        	case LOGIN_CODE:
+        	{
+        	    // Handle user login request
+        	    string usertype;
+        	    recv(newSocket,&usertype,sizeof(usertype),0);
+				if(usertype=="S")
+				{
+					sem_post(student_regFileSemaphore);
+					//server_side_student_login(newSocket);
+					sem_wait(student_regFileSemaphore);
+				}
+				else
+				{
+					sem_post(teacher_regFileSemaphore);
+					//server_side_teacher_login(newSocket);
+					sem_wait(teacher_regFileSemaphore);
+				}
+				send(newSocket,&success_code,sizeof(success_code),0);
+        	    break;
+        	}
+        }
+        if (endflag)
+            break;
+	
+    }
+	pthread_exit(&ptid);	
 }
+
+
 // Driver Code
 int main()
 {
@@ -46,8 +99,10 @@ int main()
 	struct sockaddr_storage serverStorage;
 
 	socklen_t addr_size;
-	sem_init(&x, 0, 1);
-	sem_init(&y, 0, 1);
+	
+    //  binary semaphores with an initial value 1
+    student_regFileSemaphore = sem_open (SEMAPHORE_NAME1, O_CREAT, 0660, 1);
+	teacher_regFileSemaphore = sem_open(SEMAPHORE_NAME2,O_CREAT,0660,1);
 
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket < 0)
@@ -75,8 +130,6 @@ int main()
 	else
 		printf("Error\n");
 
-	// Array for thread
-	pthread_t tid[60];
 
 	int i = 0;
 

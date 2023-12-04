@@ -1,27 +1,30 @@
 # the compiler: gcc for C program, define as g++ for C++
-CC = g++
+CC=g++
+CFLAGS=-g -Wall -I Templates
+BUILD=build
 
 # compiler flags:
 #  -g     - this flag adds debugging information to the executable file
 #  -Wall  - this flag is used to turn on most compiler warnings
-CFLAGS  = -g -Wall
+
+# set tab size to 8 spaces
 
 # The build target
-TARGET = server login client
+TARGET=always server client
 
 all: $(TARGET)
 
-server: server.cpp
-    $ echo "Building server..";
-    $ $(CC) $(CFLAGS) -o server ./server/server.cpp
+server: always
+	@echo "Building server..."
+	$(CC) $(CFLAGS) -o $(BUILD)/server ./server/server_func_implementation.cpp ./server/server.cpp
 
-login: login.cpp
-    $ $(CC) $(CFLAGS) -o login ./server/login.cpp
+client: always
+	@echo "Building client..."
+	$(CC) $(CFLAGS) -o $(BUILD)/client ./client/client_implementation.cpp ./client/client.cpp
+
+always:
+	mkdir -p $(BUILD)
 
 clean:
-    $ echo "Clean build files..";
-    $ $(RM) $(TARGET)
-
-client: client.cpp
-    $ echo "Building client..";
-    $ $(CC) $(CFLAGS) -o client ./client/client.cpp
+	@echo "Clean build files.."
+	rm -rf $(BUILD)/*
