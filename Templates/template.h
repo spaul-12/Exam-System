@@ -23,10 +23,10 @@ struct StudentUserInfo
 
 struct TeacherUserInfo
 {
-    string username;
-    string password;
-    string teacherid;
-    string department;
+    char username[100];
+    char password[100];
+    char teacherid[100];
+    char department[100];
 };
 
 struct ClientUserInfo
