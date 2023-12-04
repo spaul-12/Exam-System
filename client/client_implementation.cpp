@@ -13,9 +13,27 @@ using namespace std;
 
 void User::user_specific_functions(int client_socket)
 {
-    cout<<"Not necessary\n";
+    cout<<"Overrideable function \n";
     return ;
 }
+
+string User::getUsername()
+{
+    return username;
+}
+
+Student::Student(string username, string password, string usertype, string rollno, string department): User(username, password, usertype)
+{
+    this->rollno = rollno;
+    this->department = department;
+}
+
+Teacher::Teacher(string username, string password, string usertype, string id, string department): User(username, password, usertype)
+{
+    this->teacherid = id;
+    this->department = department;
+}
+
 
 Client::Client()
 {
@@ -82,6 +100,7 @@ void Client::registeruser(char &usertype)
     send(client_socket,&usertype,sizeof(usertype),0);  // to call specific registration func
 
     int code;
+    string id,department;
 
     ClientUserInfo *clientInfo = new ClientUserInfo;
     if(usertype =='S')
@@ -98,6 +117,8 @@ void Client::registeruser(char &usertype)
         clientInfo->username = newUserInfo->username;
         clientInfo->password = newUserInfo->password;
         clientInfo->usertype = "S";
+        id = newUserInfo->rollno;
+        department = newUserInfo->department;
     }
     else
     {
@@ -114,27 +135,42 @@ void Client::registeruser(char &usertype)
         clientInfo->username = newUserInfo->username;
         clientInfo->password = newUserInfo->password;
         clientInfo->usertype = "T";
+        id = newUserInfo->teacherid;
+        department = newUserInfo->department;
     }
 
     recv(client_socket, &code, sizeof(code), 0);
 
     if (code == 200)
     {
-        this->client = new User(clientInfo->username, clientInfo->password, clientInfo->usertype);
         cout << "Welcome, " << clientInfo->username << ", to Exam center!!\n";
 
-        int code = END_CONNECTION_CODE;
-        send(client_socket,&code,sizeof(code),0);
-        /* if (usertype == 'S')
+        if (usertype == 'S')
         {
+            this->client = new Student(clientInfo->username, clientInfo->password, clientInfo->usertype, id, department);
             Student *student = dynamic_cast<Student *>(this->client);
+            if(student==NULL)
+            {
+                cout<<"downcasting failed\n"<<endl;
+                code = END_CONNECTION_CODE;
+                send(client_socket,&code,sizeof(code),0);
+                exit(0);
+            }
             student->user_specific_functions(client_socket);
         }
         else
         {
+            this->client = new Teacher(clientInfo->username, clientInfo->password, clientInfo->usertype, id, department);
             Teacher *teacher = dynamic_cast<Teacher *>(this->client);
+            if(teacher==NULL)
+            {
+                cout<<"downcasting failed\n"<<endl;
+                code = END_CONNECTION_CODE;
+                send(client_socket,&code,sizeof(code),0);
+                exit(0);
+            }
             teacher->user_specific_functions(client_socket);
-        } */
+        }
 
     }
     else
@@ -152,15 +188,28 @@ void Student::user_specific_functions(int client_socket)
         int ch;
         cout<<"1) start exam \n 2) exit\n";
         cin>>ch;
+        bool endflag = false;
         switch (ch)
         {
             case 1:
             {
                 code = START_EXAM_CODE;
                 send(client_socket,&code,sizeof(code),0);
+                break;
+            }
+            case 2:
+            {
+                code = END_CONNECTION_CODE;
+                send(client_socket,&code,sizeof(code),0);
+                endflag = true;
+                break;
             }
         }
+        if(endflag)
+        break;
     }
+    cout<<"Connection ended :("<<endl;
+    exit(0);
 }
 
 void Teacher::user_specific_functions(int client_socket)

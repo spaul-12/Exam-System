@@ -25,7 +25,7 @@ void server_side_student_registration(int newSocket)
     cout<<"Received info..\n";
     fstream file;
     file.open("student_database.txt", ios::app);
-    file<<rollno<<"|"<<uname<<"|"<<password<<"|"<<department;
+    file<<rollno<<"|"<<uname<<"|"<<password<<"|"<<department<<endl;
     file.close();
     return ;
 }

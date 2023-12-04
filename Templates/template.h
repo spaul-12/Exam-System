@@ -48,13 +48,16 @@ class User{
         this->usertype = usertype;
     }
     virtual void user_specific_functions(int);
+    string getUsername();
 };
 
 class Student:public User{
     private:
-    string rollno=NULL;
-    string department=NULL;
+    string rollno="null";
+    string department="null";
     public:
+    Student(string ,string,string, string, string);
+    string getRollNumber();
     void user_specific_functions(int client_socket);
 };
 
@@ -63,6 +66,8 @@ class Teacher:public User{
     string department;
     string teacherid;
     public:
+    Teacher(string, string, string, string, string);
+    string getId();
     void user_specific_functions(int client_socket);
 };
 
