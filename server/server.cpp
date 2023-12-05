@@ -28,7 +28,7 @@ void *clientConnection(void *param)
 	{
 		// Receive a request code from the client
         recv(newSocket, &choice, sizeof(choice), 0);
-        //cout << choice << endl;
+        cout << choice << endl;
         switch (choice)
         {
         	case END_CONNECTION_CODE:
@@ -43,7 +43,6 @@ void *clientConnection(void *param)
 				cout<<"Registration started..\n";
 				char usertype;
         	    recv(newSocket,&usertype,sizeof(usertype),0);
-				cout<<usertype<<endl;
 				if(usertype=='S')
 				{
 					sem_wait(student_regFileSemaphore);
@@ -63,10 +62,12 @@ void *clientConnection(void *param)
         	{
         	    // Handle user login request
 				sem_wait(readFileSemaphore);
-				send(newSocket,&success_code,sizeof(success_code),0);
+				server_side_login(newSocket);
 				sem_post(readFileSemaphore);
+				send(newSocket,&success_code,sizeof(success_code),0);
         	    break;
         	}
+				
         }
         if (endflag)
             break;
@@ -89,8 +90,8 @@ int main()
 	
     //  binary semaphores with an initial value 1
     student_regFileSemaphore = sem_open (SEMAPHORE_NAME1, O_CREAT, 0660, 1);
-	teacher_regFileSemaphore = sem_open(SEMAPHORE_NAME2,O_CREAT,0660,1);
-	readFileSemaphore = sem_open(SEMAPHORE_NAME3, O_CREAT, 0660,1);
+	teacher_regFileSemaphore = sem_open (SEMAPHORE_NAME2,O_CREAT,0660, 1);
+	readFileSemaphore = sem_open (SEMAPHORE_NAME3, O_CREAT, 0660, 1);
 
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket < 0)

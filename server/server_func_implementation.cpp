@@ -16,7 +16,6 @@ void server_side_student_registration(int newSocket)
     StudentUserInfo *newUserInfo = new StudentUserInfo;
 
     recv(newSocket, newUserInfo, sizeof(*newUserInfo), 0);
-    cout << "Recieved.. ";
     uname = newUserInfo->username;
     password = newUserInfo->password;
     rollno = newUserInfo->rollno;
@@ -24,7 +23,7 @@ void server_side_student_registration(int newSocket)
     cout << "Received info..\n";
     fstream file;
     file.open("student_database.txt", ios::app);
-    file << rollno << "|" << password << "|" << uname << "|" << department << endl;
+    file << rollno << "|" << password << "|" << uname << "|" << department << "|"<<endl;
     file.close();
     return;
 }
@@ -49,6 +48,7 @@ void server_side_teacher_registration(int newSocket)
 
 void server_side_login(int newSocket)
 {
+    cout<<"login started.."<<endl;
     string file_name;
     char usertype;
     recv(newSocket,&usertype,sizeof(usertype),0);
@@ -97,7 +97,7 @@ void server_side_login(int newSocket)
             }
             else
             {
-
+                break;
             }
 
         }

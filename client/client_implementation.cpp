@@ -40,9 +40,10 @@ Student::Student(string username, string password, string usertype, string rolln
     this->department = department;
 }
 
-Student::Student(string id, string password): User(password)
+Student::Student(string id, string dept, string password): User(password)
 {
     this->rollno = id;
+    this->department =dept;
 }
 
 Teacher::Teacher(string username, string password, string usertype, string id, string department): User(username, password, usertype)
@@ -51,9 +52,10 @@ Teacher::Teacher(string username, string password, string usertype, string id, s
     this->department = department;
 }
 
-Teacher::Teacher(string id, string password): User(password)
+Teacher::Teacher(string id, string dept, string password): User(password)
 {
     this->teacherid = id;
+    this->department = dept;
 }
 
 Client::Client()
@@ -218,15 +220,16 @@ void Client::login(char &usertype)
         if(code == SUCCESSFUL_CODE)
         {
             cout << "Welcome to Exam center!!\n";
+            string department = parseDepartment(userInfo->id);
             if(usertype=='S')
             {
-                this->client = new Student(userInfo->id, userInfo->password);
+                this->client = new Student(userInfo->id,department, userInfo->password);
                 Student *student = dynamic_cast<Student*>(this->client);
                 student->user_specific_functions(client_socket);
             }
             else
             {
-                this->client = new Teacher(userInfo->id, userInfo->password);
+                this->client = new Teacher(userInfo->id, department,userInfo->password);
                 Teacher *teacher = dynamic_cast<Teacher *>(this->client);
                 teacher->user_specific_functions(client_socket);
             }
@@ -246,7 +249,7 @@ void Student::user_specific_functions(int client_socket)
     {
         int code ;
         int ch;
-        cout<<"1) start exam \n 2) exit\n";
+        cout<<" 1) start exam \n 2) exit\n";
         cin>>ch;
         bool endflag = false;
         switch (ch)
@@ -276,17 +279,88 @@ void Teacher::user_specific_functions(int client_socket)
 {
     while(1)
     {
+        bool endmenu = false;
         int code ;
         int ch;
-        cout<<"1) set exam questions\n 2) exit\n";
+        cout<<" 1) set exam questions\n 2) see questions\n 3) exit\n";
         cin>>ch;
         switch (ch)
         {
             case 1:
             {
-                code = START_EXAM_CODE;
+                code = SET_QUESTION_CODE;
                 send(client_socket,&code,sizeof(code),0);
+                sleep(1);
+                send(client_socket,&this->department,sizeof(this->department),0);   // to open specific department question bank
+                while(1)
+                {
+                    int choice;
+                    bool endflag = false;
+                    cout<<"Do you want to add more Question?\n 1) Yes\n 2) No\n";
+                    cin>>choice;
+                    if(choice == 1)
+                    {
+                        code = send(client_socket,&code,sizeof(code),0);
+
+                        QuestionInfo* question = new QuestionInfo;
+                        cout<<set_question_menu;
+                        cin>>question->que;
+                        cin>>question->opt1;
+                        cin>>question->opt2;
+                        cin>>question->opt3;
+                        cin>>question->opt4;
+                        cin>>question->answer;
+                        cin>>question->marks;
+                        
+                        send(client_socket,question,sizeof(* question),0);
+
+                    }
+                    else
+                    {
+                        code = END_OF_QUESTION_SETTING;
+                        send(client_socket,&code,sizeof(code),0);
+                        endflag = true;
+                    }
+                    if(endflag)
+                    break;
+                    
+                }
+                break;
+            }
+            case 2:
+            {
+
+                break;
+            }
+            case 3:
+            {
+                endmenu = true;
+                break;
             }
         }
+        if(endmenu)
+        {
+            code = END_CONNECTION_CODE;
+            send(client_socket,&code,sizeof(code),0);
+            break;
+        }
     }
+    exit(1);
+    
+}
+
+string parseDepartment(string id)
+{
+    map<string,string>department;
+    department["CS"] = "computer science and engineering";
+    department["ME"] = "mechanical engineering";
+    department["ECE"] = "electronics and engineering";
+
+    for(auto it:department)
+    {
+        size_t index = id.find(it.first);
+        if(index != string::npos)
+        return it.second;
+    }
+    return "";
 }
