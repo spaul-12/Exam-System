@@ -105,7 +105,7 @@ int main()
 
 	// Bind the socket to the
 	// address and port number.
-	if (bind(serverSocket,(struct sockaddr *)&serverAddr,sizeof(serverAddr)) < 0)
+	if (::bind(serverSocket,(struct sockaddr *)&serverAddr,sizeof(serverAddr)) < 0)
 	{
 		printf("bind failed\n");
 		exit(0);

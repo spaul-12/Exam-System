@@ -1,4 +1,10 @@
-#include<bits/stdc++.h>
+#include<iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
+#include <sys/types.h>
+#include <map>
 #include<sys/socket.h>
 using namespace std;
 
