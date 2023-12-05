@@ -291,27 +291,28 @@ void Teacher::user_specific_functions(int client_socket)
                 code = SET_QUESTION_CODE;
                 send(client_socket,&code,sizeof(code),0);
                 sleep(1);
-                send(client_socket,&this->department,sizeof(this->department),0);   // to open specific department question bank
+                char dept[10];
+                strcpy(dept, this->department.c_str());
+                send(client_socket,&dept,sizeof(dept),0);   // to open specific department question bank
                 while(1)
                 {
                     int choice;
                     bool endflag = false;
-                    cout<<"Do you want to add more Question?\n 1) Yes\n 2) No\n";
+                    cout<<"Do you want to add Question?\n 1) Yes\n 2) No\n";
                     cin>>choice;
                     if(choice == 1)
                     {
                         code = send(client_socket,&code,sizeof(code),0);
-
                         QuestionInfo* question = new QuestionInfo;
+                        cin.ignore();
                         cout<<set_question_menu;
-                        cin>>question->que;
+                        cin.getline(question->que,2048);
                         cin>>question->opt1;
                         cin>>question->opt2;
                         cin>>question->opt3;
                         cin>>question->opt4;
                         cin>>question->answer;
                         cin>>question->marks;
-                        
                         send(client_socket,question,sizeof(* question),0);
 
                     }
@@ -351,16 +352,13 @@ void Teacher::user_specific_functions(int client_socket)
 
 string parseDepartment(string id)
 {
-    map<string,string>department;
-    department["CS"] = "computer science and engineering";
-    department["ME"] = "mechanical engineering";
-    department["ECE"] = "electronics and engineering";
+    vector<string>department = {"CS","EE","ECE","ME"};
 
     for(auto it:department)
     {
-        size_t index = id.find(it.first);
+        size_t index = id.find(it);
         if(index != string::npos)
-        return it.second;
+        return it;
     }
     return "";
 }

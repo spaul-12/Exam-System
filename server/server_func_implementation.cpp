@@ -41,7 +41,7 @@ void server_side_teacher_registration(int newSocket)
 
     fstream file;
     file.open("teacher_database.txt", ios::app);
-    file << teacher_id << "|" << password << "|" << uname << "|" << department;
+    file << teacher_id << "|" << password << "|" << uname << "|" << department<<endl;
     file.close();
     return;
 }
@@ -70,6 +70,7 @@ void server_side_login(int newSocket)
     {
         while (1)
         {
+            file.seekg(0,ios::beg);
             recv(newSocket, userInfo, sizeof(*userInfo), 0);
             bool not_found = true;
             std::string line;
@@ -87,7 +88,9 @@ void server_side_login(int newSocket)
                         break;
                     }
                     else
-                    break;
+                    {
+                        break;
+                    }
                 }
             }
             if(not_found)
@@ -108,4 +111,29 @@ void server_side_login(int newSocket)
         cout << "Error opening file" << std::endl;
     }
     return;
+}
+
+void setQuestion(int newSocket, string department)
+{
+    
+    string fileName = department + ".txt";
+    fstream file;
+    file.open(fileName,ios::app);
+    while(1)
+    {
+        int code;
+        recv(newSocket,&code, sizeof(code),0);
+        if(code == SET_QUESTION_CODE)
+        {
+            QuestionInfo* question = new QuestionInfo;
+            recv(newSocket, question, sizeof(* question),0);
+            file<<question->que<<"|"<<question->opt1<<"|"<<question->opt2<<"|"<<question->opt2<<"|"<<question->opt3<<"|"<<question->opt4<<"|"<<question->answer<<"|"<<question->marks<<"|"<<endl;
+        }
+        else
+        {
+            break;
+        }
+    }
+    file.close();
+    
 }
