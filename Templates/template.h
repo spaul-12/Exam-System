@@ -1,15 +1,16 @@
 #include<iostream>
-#include <string>
+#include <string.h>
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
+#include <vector>
 #include <sys/types.h>
 #include <map>
 #include<sys/socket.h>
 using namespace std;
 
-#define student_register_menu "Enter the following\n 1) username \n 2) password \n 3) roll number \n 4) department\n" 
-#define teacher_register_menu "Enter the following\n 1) username \n 2) password \n 3) teacher_id \n 4) department\n"
+#define student_register_menu "Enter the following\n 1) username \n 2) password \n 3) roll number \n 4) department (abbreviated)\n" 
+#define teacher_register_menu "Enter the following\n 1) username \n 2) password \n 3) teacher_id \n 4) department (abbreviated)\n"
 #define login_menu "Enter the following\n 1) Id \n 2) password\n"
 #define set_question_menu "Enter the following\n 1) Question\n 2)Option 1\n 3) Option 2\n 4) Option 3\n 5) Option 4\n 6) Correct Answer\n 7) Marks\n"
 #define REGISTRATION_CODE 121
@@ -117,3 +118,4 @@ void server_side_student_registration(int newSocket);
 void server_side_teacher_registration(int newSocket);
 void server_side_login(int newSocket);
 string parseDepartment(string id);
+void setQuestion(int newSocket, string department);
