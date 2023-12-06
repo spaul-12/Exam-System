@@ -18,7 +18,7 @@ sem_t *teacher_regFileSemaphore;
 sem_t *readFileSemaphore;
 sem_t *queFileSemaphores[4];
 sem_t *resultFileSemaphores[4];
-
+sem_t *readResultFile;
 
 map<string,int>deptIndex ;
 void initializeDeptIndex()
@@ -105,6 +105,15 @@ void *clientConnection(void *param)
 			sem_post(resultFileSemaphores[index]);
 			break;
 		}
+		case LEADERBOARD_CODE:
+		{
+			char dept[10];
+			recv(newSocket, &dept, sizeof(dept), 0);
+			sem_wait(readResultFile);
+			getLeaderboard(newSocket,dept);
+			sem_post(readResultFile);
+			break;
+		}
 		}
 		if (endflag)
 			break;
@@ -129,6 +138,7 @@ int main()
 	student_regFileSemaphore = sem_open(SEMAPHORE_NAME1, O_CREAT, 0660, 1);
 	teacher_regFileSemaphore = sem_open(SEMAPHORE_NAME2, O_CREAT, 0660, 1);
 	readFileSemaphore = sem_open(SEMAPHORE_NAME3, O_CREAT, 0660, 1);
+	readResultFile = sem_open(SEMAPHORE_NAME4, O_CREAT, 0660, 1);
 	for (int i = 0; i < 4; i++)
 	{
 		sprintf(semaphoreName, "my_semaphore_%d", i);

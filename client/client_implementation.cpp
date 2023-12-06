@@ -249,7 +249,7 @@ void Student::user_specific_functions(int client_socket)
     {
         int code ;
         int ch;
-        cout<<" 1) start exam \n 2) exit\n";
+        cout<<" 1) start exam \n 2) see leaderboard \n 3) exit \n";
         cin>>ch;
         bool endflag = false;
         switch (ch)
@@ -298,6 +298,30 @@ void Student::user_specific_functions(int client_socket)
             }
             case 2:
             {
+                int code = LEADERBOARD_CODE;
+                send(client_socket, &code , sizeof(code),0);
+                char dept[10];
+                strcpy(dept,this->department.c_str());
+                send(client_socket,&dept,sizeof(dept),0);
+                while(1)
+                {
+                    recv(client_socket,&code , sizeof(code),0);
+                    if(code == LEADERBOARD_CODE)
+                    {
+                        leaderboardInfo* leaderboard = new leaderboardInfo;
+                        recv(client_socket,leaderboard, sizeof(* leaderboard),0);
+                        cout<<"Roll: "<<leaderboard->id<<"Marks: "<<leaderboard->marks<<endl;
+                    }
+                    else
+                    {
+                        cout<<"End of Leaderboard\n";
+                        break;
+                    }
+                }
+                break;
+            }
+            case 3:
+            {
                 code = END_CONNECTION_CODE;
                 send(client_socket,&code,sizeof(code),0);
                 endflag = true;
@@ -318,7 +342,7 @@ void Teacher::user_specific_functions(int client_socket)
         bool endmenu = false;
         int code ;
         int ch;
-        cout<<" 1) set exam questions\n 2) see questions\n 3) exit\n";
+        cout<<" 1) set exam questions\n 2) see leaderboard \n 3) exit\n";
         cin>>ch;
         switch (ch)
         {
@@ -366,7 +390,27 @@ void Teacher::user_specific_functions(int client_socket)
             }
             case 2:
             {
-
+                int code = LEADERBOARD_CODE;
+                send(client_socket, &code , sizeof(code),0);
+                char dept[10];
+                cout<<"Enter which department leaderboard you want to see (department in abbreviated form)\n";
+                cin>>dept;
+                send(client_socket,&dept,sizeof(dept),0);
+                while(1)
+                {
+                    recv(client_socket,&code , sizeof(code),0);
+                    if(code == LEADERBOARD_CODE)
+                    {
+                        leaderboardInfo* leaderboard = new leaderboardInfo;
+                        recv(client_socket,leaderboard, sizeof(* leaderboard),0);
+                        cout<<"Roll: "<<leaderboard->id<<"Marks: "<<leaderboard->marks<<endl;
+                    }
+                    else
+                    {
+                        cout<<"End of Leaderboard\n";
+                        break;
+                    }
+                }
                 break;
             }
             case 3:

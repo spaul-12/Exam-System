@@ -6,7 +6,8 @@
 #include <vector>
 #include <sys/types.h>
 #include <map>
-#include<sys/socket.h>
+#include <sys/socket.h>
+#include <algorithm>
 using namespace std;
 
 #define student_register_menu "Enter the following\n 1) username \n 2) password \n 3) roll number \n 4) department (abbreviated)\n" 
@@ -21,12 +22,15 @@ using namespace std;
 #define END_EXAM_CODE 126
 #define SET_QUESTION_CODE 127
 #define END_OF_QUESTION_SETTING 128
+#define LEADERBOARD_CODE 129
+#define END_OF_LEADERBOARD_CODE 130
 #define END_CONNECTION_CODE 400
 #define SUCCESSFUL_CODE  200
 // Semaphore names
 #define SEMAPHORE_NAME1 "/sem-mutex1"
 #define SEMAPHORE_NAME2 "/sem-mutex2"
 #define SEMAPHORE_NAME3 "/sem-mutex3"
+#define SEMAPHORE_NAME4 "/sem-mutex4"
 
 
 struct StudentUserInfo
@@ -76,6 +80,12 @@ struct StudentQuestion
     char opt2[100];
     char opt3[100];
     char opt4[100];
+    char marks[10];
+};
+
+struct leaderboardInfo
+{
+    char id[100];
     char marks[10];
 };
 
@@ -141,3 +151,4 @@ void server_side_login(int newSocket);
 string parseDepartment(string id);
 void setQuestion(int newSocket, string department, Question&);
 void updateResult(string id,string dept,int marksObtained);
+void getLeaderboard(int newSocket, string dept);

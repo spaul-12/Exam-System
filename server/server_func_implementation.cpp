@@ -10,6 +10,17 @@
 #define PORT 8080
 using namespace std;
 
+// ------------------ for leaderboard ---------------
+struct Student_Result {
+    string roll;
+    string marks;
+};
+
+bool compareByMarks(const Student_Result& a, const Student_Result& b) {
+    return a.marks > b.marks;
+}
+// --------------------------------------------------
+
 Question::Question()
 {
     questionBank.clear();
@@ -189,4 +200,61 @@ void updateResult(string id,string department, int marksObtained)
     file.open(fileName,ios::app);
     file<<id<<"|"<<marksObtained<<"|"<<endl;
     file.close();
+}
+
+vector<Student_Result> sortResultFile(string &fileName)
+{
+    ifstream inFile(fileName);
+    vector<Student_Result> students;
+
+    if (inFile.is_open()) {
+        std::string line;
+        while (std::getline(inFile, line)) {
+            Student_Result student;
+            stringstream str(line);
+            string attr;
+            getline(str,attr,'|');
+            student.roll = attr;
+            getline(str,attr,'|');
+            student.marks = attr;
+            students.push_back(student);
+        }
+
+        inFile.close();
+
+        // Sort the students based on marks
+        std::sort(students.begin(), students.end(), compareByMarks);
+
+    } else {
+        std::cout << "Error opening input file\n";
+    }
+
+    return students;
+}
+
+void getLeaderboard(int newSocket, string dept)
+{
+    string fileName = dept+"_result.txt";
+    vector<Student_Result> students = sortResultFile(fileName);
+    int code;
+    if(students.size())
+    {
+        for(auto it:students)
+        {
+            code = LEADERBOARD_CODE;
+            send(newSocket, &code , sizeof(code),0);
+            leaderboardInfo* leaderboard = new leaderboardInfo;
+            strcpy(leaderboard->id, it.roll.c_str());
+            strcpy(leaderboard->marks, it.marks.c_str());
+            send(newSocket,leaderboard,sizeof(* leaderboard), 0);
+        }
+    }
+    else
+    {
+        cout<<"Error getting the leaderboard\n";
+    }
+    code = END_OF_LEADERBOARD_CODE;
+    send(newSocket,&code , sizeof(code),0);
+    return ;
+    
 }
