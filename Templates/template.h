@@ -17,8 +17,10 @@ using namespace std;
 #define LOGIN_CODE 122
 #define LOGIN_FAIL_CODE 123
 #define START_EXAM_CODE 124
-#define SET_QUESTION_CODE 125
-#define END_OF_QUESTION_SETTING 126
+#define RECIEVE_QUESTION_CODE 125
+#define END_EXAM_CODE 126
+#define SET_QUESTION_CODE 127
+#define END_OF_QUESTION_SETTING 128
 #define END_CONNECTION_CODE 400
 #define SUCCESSFUL_CODE  200
 // Semaphore names
@@ -64,6 +66,16 @@ struct QuestionInfo
     char opt3[100];
     char opt4[100];
     char answer[5];
+    char marks[10];
+};
+
+struct StudentQuestion
+{
+    char que[2048];
+    char opt1[100];
+    char opt2[100];
+    char opt3[100];
+    char opt4[100];
     char marks[10];
 };
 
@@ -113,9 +125,18 @@ class Client{
     void login(char &);
 };
 
+class Question
+{
+    vector<QuestionInfo*> questionBank;
+    public:
+    Question();
+    void insertQuestion(QuestionInfo *);
+    void getQuestion(int );
+};
+
 // generic functions
 void server_side_student_registration(int newSocket);
 void server_side_teacher_registration(int newSocket);
 void server_side_login(int newSocket);
 string parseDepartment(string id);
-void setQuestion(int newSocket, string department);
+void setQuestion(int newSocket, string department, Question&);

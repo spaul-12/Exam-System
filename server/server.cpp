@@ -17,7 +17,8 @@ sem_t *readFileSemaphore;
 sem_t *queFileSemaphores[4];
 char semaphoreName[16];
 
-map<string,int>deptFileIndex = {{"CSE",0},{"ECE",1},{"EE",2},{"ME",3}};
+map<string,int>deptIndex = {{"CSE",0},{"ECE",1},{"EE",2},{"ME",3}};
+Question deptQuestionBank[4];
 
 void *clientConnection(void *param)
 {
@@ -75,10 +76,18 @@ void *clientConnection(void *param)
 			// Handle question setting
 			char dept[10];
 			recv(newSocket, &dept, sizeof(dept), 0);
-			int index = deptFileIndex[dept];
+			int index = deptIndex[dept];
 			sem_wait(queFileSemaphores[index]);
-			setQuestion(newSocket,dept);
+			setQuestion(newSocket,dept, deptQuestionBank[index]);
 			sem_post(queFileSemaphores[index]);
+			break;
+		}
+		case START_EXAM_CODE:
+		{
+			char dept[10];
+			recv(newSocket, &dept,sizeof(dept),0);
+			int index = deptIndex[dept];
+			deptQuestionBank[index].getQuestion(newSocket);
 			break;
 		}
 		}

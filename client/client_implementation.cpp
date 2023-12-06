@@ -258,6 +258,38 @@ void Student::user_specific_functions(int client_socket)
             {
                 code = START_EXAM_CODE;
                 send(client_socket,&code,sizeof(code),0);
+                char dept[10];
+                strcpy(dept,this->department.c_str());
+                send(client_socket,&dept,sizeof(dept),0);
+                while(1)
+                {
+                    recv(client_socket,&code, sizeof(code),0);
+                    if(code == RECIEVE_QUESTION_CODE)
+                    {
+                        StudentQuestion* question = new StudentQuestion;
+                        recv(client_socket, question, sizeof(* question),0);
+                        cout<<question->que<<endl;
+                        cout<<"a: "<<question->opt1<<endl;
+                        cout<<"b: "<<question->opt1<<endl;
+                        cout<<"c: "<<question->opt1<<endl;
+                        cout<<"d: "<<question->opt1<<endl;
+                        cout<<"Marks: "<<question->marks<<endl;
+                        cout<<"Enter your answer (a/b/c/d) :"<<endl;
+                        char answer[5];
+                        cin.ignore();
+                        cin.getline(answer,5);
+                        send(client_socket,&answer,sizeof(answer),0);
+
+                    }
+                    else
+                    {
+                        cout<<"Thanks for taking the exam\n";
+                        int marksObtained;
+                        recv(client_socket,&marksObtained,sizeof(marksObtained),0);
+                        cout<<"Marks obtained: "<<marksObtained<<endl;
+                        break;
+                    }
+                }
                 break;
             }
             case 2:
