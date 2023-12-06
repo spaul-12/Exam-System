@@ -20,7 +20,7 @@ void Question::insertQuestion(QuestionInfo* question)
     this->questionBank.push_back(question);
 }
 
-void Question::getQuestion(int newSocket)
+int Question::startExam(int newSocket)
 {
     int marks=0;
     int code;
@@ -49,11 +49,8 @@ void Question::getQuestion(int newSocket)
     send(newSocket,&code,sizeof(code),0);
     sleep(1);
     send(newSocket,&marks,sizeof(marks),0);
-    fstream file;
-    file.open("result.txt",ios::app);
-    file<<marks<<endl;
-    file.close();
-
+    
+    return marks;
 }
 
 void server_side_student_registration(int newSocket)
@@ -87,7 +84,7 @@ void server_side_teacher_registration(int newSocket)
 
     fstream file;
     file.open("teacher_database.txt", ios::app);
-    file << teacher_id << "|" << password << "|" << uname << "|" << department<<endl;
+    file << teacher_id << "|" << password << "|" << uname << "|" << department<<"|"<<endl;
     file.close();
     return;
 }
@@ -174,7 +171,7 @@ void setQuestion(int newSocket, string department, Question &deptObj)
             QuestionInfo* question = new QuestionInfo;
             recv(newSocket, question, sizeof(* question),0);
             deptObj.insertQuestion(question);
-            file<<question->que<<"|"<<question->opt1<<"|"<<question->opt2<<"|"<<question->opt2<<"|"<<question->opt3<<"|"<<question->opt4<<"|"<<question->answer<<"|"<<question->marks<<"|"<<endl;
+            file<<question->que<<"|"<<question->opt1<<"|"<<question->opt2<<"|"<<question->opt3<<"|"<<question->opt4<<"|"<<question->answer<<"|"<<question->marks<<"|"<<endl;
         }
         else
         {
@@ -183,4 +180,13 @@ void setQuestion(int newSocket, string department, Question &deptObj)
     }
     file.close();
     
+}
+
+void updateResult(string id,string department, int marksObtained)
+{
+    string fileName = department+"_result.txt";
+    fstream file;
+    file.open(fileName,ios::app);
+    file<<id<<"|"<<marksObtained<<"|"<<endl;
+    file.close();
 }

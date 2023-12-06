@@ -261,6 +261,11 @@ void Student::user_specific_functions(int client_socket)
                 char dept[10];
                 strcpy(dept,this->department.c_str());
                 send(client_socket,&dept,sizeof(dept),0);
+                char id[100];
+                cout<<"Enter your roll number: \n";
+                cin.ignore();
+                cin.getline(id,100);
+                send(client_socket,&id,sizeof(id),0);
                 while(1)
                 {
                     recv(client_socket,&code, sizeof(code),0);
@@ -276,8 +281,7 @@ void Student::user_specific_functions(int client_socket)
                         cout<<"Marks: "<<question->marks<<endl;
                         cout<<"Enter your answer (a/b/c/d) :"<<endl;
                         char answer[5];
-                        cin.ignore();
-                        cin.getline(answer,5);
+                        cin>>answer;
                         send(client_socket,&answer,sizeof(answer),0);
 
                     }

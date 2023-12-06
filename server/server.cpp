@@ -17,7 +17,8 @@ sem_t *student_regFileSemaphore;
 sem_t *teacher_regFileSemaphore;
 sem_t *readFileSemaphore;
 sem_t *queFileSemaphores[4];
-char semaphoreName[16];
+sem_t *resultFileSemaphores[4];
+
 
 map<string,int>deptIndex ;
 void initializeDeptIndex()
@@ -96,7 +97,12 @@ void *clientConnection(void *param)
 			char dept[10];
 			recv(newSocket, &dept,sizeof(dept),0);
 			int index = deptIndex[dept];
-			deptQuestionBank[index].getQuestion(newSocket);
+			char id[100];
+			recv(newSocket,&id,sizeof(id),0);
+			int marksObtained = deptQuestionBank[index].startExam(newSocket);
+			sem_wait(resultFileSemaphores[index]);
+			updateResult(id,dept,marksObtained);
+			sem_post(resultFileSemaphores[index]);
 			break;
 		}
 		}
@@ -118,14 +124,17 @@ int main()
 	socklen_t addr_size;
 
 	//  binary semaphores with an initial value 1
+	char semaphoreName[16];
+	char resultSemaphoreName[25];
 	student_regFileSemaphore = sem_open(SEMAPHORE_NAME1, O_CREAT, 0660, 1);
 	teacher_regFileSemaphore = sem_open(SEMAPHORE_NAME2, O_CREAT, 0660, 1);
 	readFileSemaphore = sem_open(SEMAPHORE_NAME3, O_CREAT, 0660, 1);
 	for (int i = 0; i < 4; i++)
 	{
-		char semaphoreName[20];
-		snprintf(semaphoreName, sizeof(semaphoreName), "my_semaphore_%d", i);
+		sprintf(semaphoreName, "my_semaphore_%d", i);
+		sprintf(resultSemaphoreName,"result_semaphore_%d",i);
 		queFileSemaphores[i] = sem_open(semaphoreName, O_CREAT, 0660, 1);
+		resultFileSemaphores[i] = sem_open(resultSemaphoreName, O_CREAT, 0660, 1);
 	}
 
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
