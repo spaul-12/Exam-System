@@ -384,7 +384,12 @@ void Teacher::user_specific_functions(int client_socket)
 
 string parseDepartment(string id)
 {
-    vector<string>department = {"CS","EE","ECE","ME"};
+    vector<string>department;
+    department.push_back("CS");
+    department.push_back("EE");
+    department.push_back("ECE");
+    department.push_back("ME");
+
 
     for(auto it:department)
     {
