@@ -124,7 +124,8 @@ void server_side_login(int newSocket)
     {
         while (1)
         {
-            file.seekg(0,ios::beg);
+            file.clear();
+            file.seekg(0,ios_base::beg);
             recv(newSocket, userInfo, sizeof(*userInfo), 0);
             bool not_found = true;
             std::string line;
