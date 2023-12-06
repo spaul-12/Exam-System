@@ -50,7 +50,7 @@ int Question::startExam(int newSocket)
         
         // receive answer of the question
         char answer[5];
-        recv(newSocket, &answer,sizeof(* answer),0);
+        recv(newSocket, &answer,sizeof(answer),0);
         if(answer[0] == questionBank[i]->answer[0])
         {
             marks += atoi(questionBank[i]->marks);
@@ -62,6 +62,28 @@ int Question::startExam(int newSocket)
     send(newSocket,&marks,sizeof(marks),0);
     
     return marks;
+}
+
+void Question::sendQuestions(int newSocket)
+{
+    int code;
+    for(size_t i=0; i < questionBank.size(); i++)
+    {
+        code = SEE_QUESTION_CODE;
+        send(newSocket,&code,sizeof(code),0);
+        QuestionInfo *question = new QuestionInfo;
+        strcpy(question->que, questionBank[i]->que);
+        strcpy(question->opt1,questionBank[i]->opt1);
+        strcpy(question->opt2,questionBank[i]->opt2);
+        strcpy(question->opt3,questionBank[i]->opt3);
+        strcpy(question->opt4,questionBank[i]->opt4);
+        strcpy(question->answer, questionBank[i]->answer);
+        strcpy(question->marks,questionBank[i]->marks);
+        send(newSocket, question,sizeof(* question),0);
+    }
+    code = END_QUESTION_SEEING_CODE;
+    send(newSocket, &code, sizeof(code), 0);
+    return ;
 }
 
 void server_side_student_registration(int newSocket)
@@ -193,6 +215,39 @@ void setQuestion(int newSocket, string department, Question &deptObj)
     file.close();
     
 }
+
+void addQuestionFromFile(string department,Question& deptobj)
+{
+    string fileName = department+".txt";
+    ifstream file(fileName,ios::in);
+    if(file.is_open())
+    {
+        string line;
+        while(getline(file,line))
+        {
+            string attr;
+            stringstream str(line);
+            QuestionInfo* question = new QuestionInfo;
+            getline(str,attr,'|');
+            strcpy(question->que,attr.c_str());
+            getline(str,attr,'|');
+            strcpy(question->opt1,attr.c_str());
+            getline(str,attr,'|');
+            strcpy(question->opt2,attr.c_str());
+            getline(str,attr,'|');
+            strcpy(question->opt3,attr.c_str());
+            getline(str,attr,'|');
+            strcpy(question->opt4,attr.c_str());
+            getline(str,attr,'|');
+            strcpy(question->answer,attr.c_str());
+            getline(str,attr,'|');
+            strcpy(question->marks,attr.c_str());
+            deptobj.insertQuestion(question);
+        }
+    }
+    return;
+}
+
 
 void updateResult(string id,string department, int marksObtained)
 {

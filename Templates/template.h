@@ -24,6 +24,8 @@ using namespace std;
 #define END_OF_QUESTION_SETTING 128
 #define LEADERBOARD_CODE 129
 #define END_OF_LEADERBOARD_CODE 130
+#define SEE_QUESTION_CODE 131
+#define END_QUESTION_SEEING_CODE 132
 #define END_CONNECTION_CODE 400
 #define SUCCESSFUL_CODE  200
 // Semaphore names
@@ -142,6 +144,7 @@ class Question
     Question();
     void insertQuestion(QuestionInfo *);
     int startExam(int );
+    void sendQuestions(int newSocket);
 };
 
 // generic functions
@@ -152,3 +155,4 @@ string parseDepartment(string id);
 void setQuestion(int newSocket, string department, Question&);
 void updateResult(string id,string dept,int marksObtained);
 void getLeaderboard(int newSocket, string dept);
+void addQuestionFromFile(string dept,Question&);

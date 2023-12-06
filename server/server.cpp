@@ -23,12 +23,20 @@ sem_t *readResultFile;
 map<string,int>deptIndex ;
 void initializeDeptIndex()
 {
-	deptIndex["CSE"] = 0;
+	deptIndex["CS"] = 0;
 	deptIndex["ECE"] = 1;
 	deptIndex["EEE"] = 2;
 	deptIndex["MECH"] = 3;
 }
 Question deptQuestionBank[4];
+
+void parseQuestionFiles()
+{
+	for(auto it:deptIndex)
+	{
+		addQuestionFromFile(it.first,deptQuestionBank[it.second]);
+	}
+}
 
 void *clientConnection(void *param)
 {
@@ -112,6 +120,15 @@ void *clientConnection(void *param)
 			sem_wait(readResultFile);
 			getLeaderboard(newSocket,dept);
 			sem_post(readResultFile);
+			
+			break;
+		}
+		case SEE_QUESTION_CODE:
+		{
+			char dept[10];
+			recv(newSocket, &dept, sizeof(dept), 0);
+			int index = deptIndex[dept];
+			deptQuestionBank[index].sendQuestions(newSocket);
 			break;
 		}
 		}
@@ -121,9 +138,12 @@ void *clientConnection(void *param)
 	pthread_exit(&ptid);
 }
 
+
 // Driver Code
 int main()
 {
+	initializeDeptIndex();
+	parseQuestionFiles();
 	// Initialize variables
 	pthread_t thread[10000];
 	int serverSocket, newSocket;
