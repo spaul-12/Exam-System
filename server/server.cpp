@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <map>
+#include <string>
 #define PORT 8080
 using namespace std;
 
@@ -17,7 +19,14 @@ sem_t *readFileSemaphore;
 sem_t *queFileSemaphores[4];
 char semaphoreName[16];
 
-map<string,int>deptIndex = {{"CSE",0},{"ECE",1},{"EE",2},{"ME",3}};
+map<string,int>deptIndex ;
+void initializeDeptIndex()
+{
+	deptIndex["CSE"] = 0;
+	deptIndex["ECE"] = 1;
+	deptIndex["EEE"] = 2;
+	deptIndex["MECH"] = 3;
+}
 Question deptQuestionBank[4];
 
 void *clientConnection(void *param)
@@ -114,7 +123,8 @@ int main()
 	readFileSemaphore = sem_open(SEMAPHORE_NAME3, O_CREAT, 0660, 1);
 	for (int i = 0; i < 4; i++)
 	{
-		sprintf(semaphoreName, "my_semaphore_%d", i);
+		char semaphoreName[20];
+		snprintf(semaphoreName, sizeof(semaphoreName), "my_semaphore_%d", i);
 		queFileSemaphores[i] = sem_open(semaphoreName, O_CREAT, 0660, 1);
 	}
 
