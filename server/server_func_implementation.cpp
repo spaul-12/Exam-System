@@ -1,5 +1,7 @@
 #include "../Templates/template.h"
 #include <sys/socket.h>
+#include <algorithm> // Add this line to include the <algorithm> header
+#include <random>
 
 // inet_addr
 #include <arpa/inet.h>
@@ -102,7 +104,7 @@ void Question::sendQuestions(int newSocket)
 
 void Question::shuffleQuestions() {
     srand(unsigned(time(0))); 
-    std::random_shuffle(questionBank.begin(), questionBank.end());
+    shuffle(questionBank.begin(), questionBank.end(), default_random_engine(random_device{}()));
 }
 
 void server_side_student_registration(int newSocket)
