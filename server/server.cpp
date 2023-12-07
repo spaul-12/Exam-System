@@ -38,6 +38,7 @@ void parseQuestionFiles()
 	}
 }
 
+
 void *clientConnection(void *param)
 {
 	cout << "Connected to server\n";
@@ -107,6 +108,7 @@ void *clientConnection(void *param)
 			int index = deptIndex[dept];
 			char id[100];
 			recv(newSocket,&id,sizeof(id),0);
+			deptQuestionBank[index].shuffleQuestions();
 			int marksObtained = deptQuestionBank[index].startExam(newSocket);
 			if(marksObtained == -1){
 				break;

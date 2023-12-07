@@ -93,6 +93,16 @@ void Question::sendQuestions(int newSocket)
     return ;
 }
 
+void Question::shuffleQuestions() {
+    size_t n = questionBank.size();
+    std::srand(static_cast<unsigned>(std::time(0))); // Seed the random number generator with current time
+    
+    for (size_t i = n - 1; i > 0; --i) {
+        int j = std::rand() % (i + 1);
+        std::swap(questionBank[i], questionBank[j]);
+    }
+}
+
 void server_side_student_registration(int newSocket)
 {
     string uname, password, rollno, department;

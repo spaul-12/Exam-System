@@ -8,6 +8,7 @@
 #include <map>
 #include <sys/socket.h>
 #include <algorithm>
+#include <ctime>
 using namespace std;
 
 #define student_register_menu "Enter the following\n 1) username \n 2) password \n 3) roll number \n 4) department (abbreviated)\n" 
@@ -147,6 +148,7 @@ class Question
     void insertQuestion(QuestionInfo *);
     int startExam(int );
     void sendQuestions(int newSocket);
+    void shuffleQuestions();
 };
 
 // generic functions
