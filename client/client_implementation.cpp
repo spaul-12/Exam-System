@@ -414,12 +414,21 @@ void Teacher::user_specific_functions(int client_socket)
                     cin.ignore();
                     cout << set_question_menu;
                     cin.getline(question->que, 2048);
-                    cin >> question->opt1;
-                    cin >> question->opt2;
-                    cin >> question->opt3;
-                    cin >> question->opt4;
-                    cin >> question->answer;
-                    cin >> question->marks;
+                    cin.getline(question->opt1,100);
+                    cin.getline(question->opt2,100);
+                    cin.getline(question->opt3,100);
+                    cin.getline(question->opt4,100);
+                    while(1)
+                    {
+                        cin.getline(question->answer,5);
+                        if(isValidAnswer(question->answer))break;
+                        else
+                        {
+                            cout<<"\ninvalid answer. Enter again\n";
+                        }
+
+                    }
+                    cin.getline(question->marks,10);
                     send(client_socket, question, sizeof(*question), 0);
                 }
                 else
@@ -438,7 +447,7 @@ void Teacher::user_specific_functions(int client_socket)
             int code = LEADERBOARD_CODE;
             send(client_socket, &code, sizeof(code), 0);
             char dept[10];
-            cout << "Enter which department leaderboard you want to see (department in abbreviated form)\n";
+            cout << "\nEnter which department leaderboard you want to see (department in abbreviated form)\n";
             cin >> dept;
             send(client_socket, &dept, sizeof(dept), 0);
             while (1)
@@ -476,9 +485,9 @@ void Teacher::user_specific_functions(int client_socket)
                     recv(client_socket, question, sizeof(*question), 0);
                     cout << "\nQ"<<i<<") "<<question->que << endl;
                     cout << "a: " << question->opt1 << endl;
-                    cout << "b: " << question->opt1 << endl;
-                    cout << "c: " << question->opt1 << endl;
-                    cout << "d: " << question->opt1 << endl;
+                    cout << "b: " << question->opt2 << endl;
+                    cout << "c: " << question->opt3 << endl;
+                    cout << "d: " << question->opt4 << endl;
                     cout << "Correct Option: " << question->answer << endl;
                     cout << "Marks: " << question->marks << endl;
                     i++;
