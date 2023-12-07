@@ -108,6 +108,9 @@ void *clientConnection(void *param)
 			char id[100];
 			recv(newSocket,&id,sizeof(id),0);
 			int marksObtained = deptQuestionBank[index].startExam(newSocket);
+			if(marksObtained == -1){
+				break;
+			}
 			sem_wait(resultFileSemaphores[index]);
 			updateResult(id,dept,marksObtained);
 			sem_post(resultFileSemaphores[index]);

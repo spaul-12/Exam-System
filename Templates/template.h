@@ -13,7 +13,7 @@ using namespace std;
 #define student_register_menu "Enter the following\n 1) username \n 2) password \n 3) roll number \n 4) department (abbreviated)\n" 
 #define teacher_register_menu "Enter the following\n 1) username \n 2) password \n 3) teacher_id \n 4) department (abbreviated)\n"
 #define login_menu "Enter the following\n 1) Id \n 2) password\n"
-#define set_question_menu "Enter the following\n 1) Question\n 2) Option 1\n 3) Option 2\n 4) Option 3\n 5) Option 4\n 6) Correct Answer\n 7) Marks\n"
+#define set_question_menu "Enter the following\n 1) Question\n 2) Option 1\n 3) Option 2\n 4) Option 3\n 5) Option 4\n 6) Correct Answer (a\\b\\c\\d)\n 7) Marks\n"
 #define REGISTRATION_CODE 121
 #define LOGIN_CODE 122
 #define LOGIN_FAIL_CODE 123
@@ -26,8 +26,10 @@ using namespace std;
 #define END_OF_LEADERBOARD_CODE 130
 #define SEE_QUESTION_CODE 131
 #define END_QUESTION_SEEING_CODE 132
+#define EMPTY_QUESTIONBANK_CODE 133
 #define END_CONNECTION_CODE 400
 #define SUCCESSFUL_CODE  200
+#define SERVER_ERROR_CODE 500
 // Semaphore names
 #define SEMAPHORE_NAME1 "/sem-mutex1"
 #define SEMAPHORE_NAME2 "/sem-mutex2"

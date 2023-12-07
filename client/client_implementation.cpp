@@ -11,6 +11,16 @@
 #define PORT 8080
 using namespace std;
 
+bool validUsertype(char &userType)
+{
+    return (userType == 'S' || userType == 'T');
+}
+
+bool isValidAnswer(string answer)
+{
+    return (answer[0]>='a' and answer[0]<='d');
+}
+
 User::User(string username, string password, string usertype)
 {
     this->username = username;
@@ -83,11 +93,22 @@ Client::Client()
 
     // Send data to the socket
     int choice, code;
-    system("clear");
     char userType;
-    cout << "Are you a student or a teacher?(S for Student, T for Teacher) \n";
-    cin >> userType;
-    cout << "Enter your choice:\n1) Register\n2) Login\n3) Exit\n";
+    system("clear");
+    while (1)
+    {
+        cout << "Are you a student or a teacher?(S for Student, T for Teacher) \n";
+        cin >> userType;
+        if(validUsertype(userType))
+        {
+            break;
+        }
+        else
+        {
+            cout<<"\nInvalid input :( . Enter again..\n\n";
+        }
+    }
+    cout << "Enter your choice:\n 1) Register\n 2) Login\n 3) Exit\n";
     cin >> choice;
     switch (choice)
     {
@@ -174,6 +195,7 @@ void Client::registeruser(char &usertype)
                      << endl;
                 code = END_CONNECTION_CODE;
                 send(client_socket, &code, sizeof(code), 0);
+                close(this->client_socket);
                 exit(0);
             }
             student->user_specific_functions(client_socket);
@@ -188,6 +210,7 @@ void Client::registeruser(char &usertype)
                      << endl;
                 code = END_CONNECTION_CODE;
                 send(client_socket, &code, sizeof(code), 0);
+                close(this->client_socket);
                 exit(0);
             }
             teacher->user_specific_functions(client_socket);
@@ -196,8 +219,9 @@ void Client::registeruser(char &usertype)
     else
     {
         cout << "Registration Failed!" << endl;
-        return;
     }
+    close(this->client_socket);
+    exit(1);
 }
 
 void Client::login(char &usertype)
@@ -234,11 +258,18 @@ void Client::login(char &usertype)
                 teacher->user_specific_functions(client_socket);
             }
         }
-        else
+        else if (code == LOGIN_FAIL_CODE)
         {
             cout << "Invalid credentials..";
         }
+        else if (code == SERVER_ERROR_CODE)
+        {
+            cout << "Internal Server Error. Try again later\n";
+            break;
+        }
     }
+    close(this->client_socket);
+    exit(1);
 }
 
 void Student::user_specific_functions(int client_socket)
@@ -277,17 +308,30 @@ void Student::user_specific_functions(int client_socket)
                     cout << "c: " << question->opt3 << endl;
                     cout << "d: " << question->opt4 << endl;
                     cout << "Marks: " << question->marks << endl;
-                    cout << "Enter your answer (a/b/c/d) :" << endl;
                     char answer[5];
-                    cin.getline(answer,5);
+                    while(1)
+                    {
+                        cout << "Enter your answer (a/b/c/d) :" << endl;
+                        cin.getline(answer, 5);
+                        if(isValidAnswer(answer)) break;
+                        else
+                        {
+                            cout<<"\nInvalid input. Try again\n\n";
+                        }
+                    }
                     send(client_socket, &answer, sizeof(answer), 0);
                 }
-                else
+                else if(code == END_EXAM_CODE)
                 {
-                    cout << "Thanks for taking the exam\n";
+                    cout << "\nThanks for taking the exam\n\n";
                     int marksObtained;
                     recv(client_socket, &marksObtained, sizeof(marksObtained), 0);
                     cout << "Marks obtained: " << marksObtained << endl;
+                    break;
+                }
+                else if(code == EMPTY_QUESTIONBANK_CODE)
+                {
+                    cout<<" \nTeacher did not add any questions. Try later\n\n";
                     break;
                 }
             }
@@ -309,9 +353,14 @@ void Student::user_specific_functions(int client_socket)
                     recv(client_socket, leaderboard, sizeof(*leaderboard), 0);
                     cout << "Roll: " << leaderboard->id << "Marks: " << leaderboard->marks << endl;
                 }
+                else if(code == END_OF_LEADERBOARD_CODE)
+                {
+                    cout << "\nEnd of Leaderboard\n\n";
+                    break;
+                }
                 else
                 {
-                    cout << "End of Leaderboard\n";
+                    cout<<"\nCould not get leaderboard details. Try again later.\n\n";
                     break;
                 }
             }
@@ -329,6 +378,7 @@ void Student::user_specific_functions(int client_socket)
             break;
     }
     cout << "Connection ended :(" << endl;
+    close(client_socket);
     exit(0);
 }
 
@@ -402,7 +452,7 @@ void Teacher::user_specific_functions(int client_socket)
                 }
                 else
                 {
-                    cout << "End of Leaderboard\n";
+                    cout << "\n-----------End of Leaderboard------------\n\n";
                     break;
                 }
             }
@@ -416,24 +466,26 @@ void Teacher::user_specific_functions(int client_socket)
             cout << "Enter which department questions you want to see (department in abbreviated form)\n";
             cin >> dept;
             send(client_socket, &dept, sizeof(dept), 0);
-            while(1)
+            int i=1;
+            while (1)
             {
                 recv(client_socket, &code, sizeof(code), 0);
-                if(code == SEE_QUESTION_CODE)
+                if (code == SEE_QUESTION_CODE)
                 {
-                    QuestionInfo* question = new QuestionInfo;
-                    recv(client_socket, question, sizeof(* question), 0);
-                    cout << question->que << endl;
+                    QuestionInfo *question = new QuestionInfo;
+                    recv(client_socket, question, sizeof(*question), 0);
+                    cout << "\nQ"<<i<<") "<<question->que << endl;
                     cout << "a: " << question->opt1 << endl;
                     cout << "b: " << question->opt1 << endl;
                     cout << "c: " << question->opt1 << endl;
                     cout << "d: " << question->opt1 << endl;
-                    cout<< "Correct Option: " << question->answer <<endl;
+                    cout << "Correct Option: " << question->answer << endl;
                     cout << "Marks: " << question->marks << endl;
+                    i++;
                 }
                 else
                 {
-                    cout<<"End of questions\n";
+                    cout << "\n---------End of questions------------\n\n";
                     break;
                 }
             }
@@ -452,6 +504,7 @@ void Teacher::user_specific_functions(int client_socket)
             break;
         }
     }
+    close(client_socket);
     exit(1);
 }
 

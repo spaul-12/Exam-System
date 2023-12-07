@@ -13,7 +13,7 @@ using namespace std;
 // ------------------ for leaderboard ---------------
 struct Student_Result {
     string roll;
-    string marks;
+    int marks;
 };
 
 bool compareByMarks(const Student_Result& a, const Student_Result& b) {
@@ -35,6 +35,13 @@ int Question::startExam(int newSocket)
 {
     int marks=0;
     int code;
+    if(questionBank.size() == 0)
+    {
+        code = EMPTY_QUESTIONBANK_CODE;
+        send(newSocket,&code, sizeof(code),0);
+        return -1;
+    }
+
     for(size_t i=0;i<questionBank.size();i++)
     {
         code = RECIEVE_QUESTION_CODE;
@@ -185,7 +192,8 @@ void server_side_login(int newSocket)
     }
     else
     {
-        cout << "Error opening file" << std::endl;
+        code = SERVER_ERROR_CODE;
+        send(newSocket, &code ,sizeof(code),0);
     }
     return;
 }
@@ -272,7 +280,7 @@ vector<Student_Result> sortResultFile(string &fileName)
             getline(str,attr,'|');
             student.roll = attr;
             getline(str,attr,'|');
-            student.marks = attr;
+            student.marks = stoi(attr);
             students.push_back(student);
         }
 
@@ -301,13 +309,16 @@ void getLeaderboard(int newSocket, string dept)
             send(newSocket, &code , sizeof(code),0);
             leaderboardInfo* leaderboard = new leaderboardInfo;
             strcpy(leaderboard->id, it.roll.c_str());
-            strcpy(leaderboard->marks, it.marks.c_str());
+            strcpy(leaderboard->marks, (to_string(it.marks)).c_str());
             send(newSocket,leaderboard,sizeof(* leaderboard), 0);
         }
     }
     else
     {
+        code = SERVER_ERROR_CODE;
+        send(newSocket, &code, sizeof(code), 0);
         cout<<"Error getting the leaderboard\n";
+        return;
     }
     code = END_OF_LEADERBOARD_CODE;
     send(newSocket,&code , sizeof(code),0);
