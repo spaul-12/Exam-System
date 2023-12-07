@@ -492,9 +492,14 @@ void Teacher::user_specific_functions(int client_socket)
                     cout << "Marks: " << question->marks << endl;
                     i++;
                 }
-                else
+                else if(code == END_QUESTION_SEEING_CODE)
                 {
                     cout << "\n---------End of questions------------\n\n";
+                    break;
+                }
+                else
+                {
+                    cout<<"\n Teacher did not add any questions yet.\n\n";
                     break;
                 }
             }

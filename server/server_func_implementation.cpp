@@ -74,6 +74,12 @@ int Question::startExam(int newSocket)
 void Question::sendQuestions(int newSocket)
 {
     int code;
+    if(questionBank.size() == 0)
+    {
+        code = EMPTY_QUESTIONBANK_CODE;
+        send(newSocket, &code, sizeof(code),0);
+        return;
+    }
     for(size_t i=0; i < questionBank.size(); i++)
     {
         code = SEE_QUESTION_CODE;
